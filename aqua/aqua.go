@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/parnurzeal/gorequest"
 )
@@ -13,19 +12,23 @@ import (
 type Aqua struct {
 	Host               string
 	Port               int
-	User               string
+	ID                 string
 	Password           string
-	RestClient         http.Client
+	RestClient         gorequest.SuperAgent
 	URL                string
 	Secure             bool
-	Token              string
+	Token              string `json:"token"`
 	InsecureSkipVerify bool
+	LicenseType        string `json:"license_type"`
+	Scopes             []string
+	User               map[string]interface{} `json:"user"`
+	License            map[string]interface{} `json:"license"`
 }
 
-// NewClient - is used to obtain functioning API endpoint
-func NewClient(host string, port int, user string, password string, secureEndpoint ...bool) (Aqua, error) {
+// NewCSP - is used to obtain functioning Aqua Enterprise API endpoint
+func NewCSP(host string, port int, id string, password string, secureEndpoint ...bool) (Aqua, error) {
 
-	aqua := Aqua{Host: host, Port: port, User: user, Password: password, Secure: true, InsecureSkipVerify: true}
+	aqua := Aqua{Host: host, Port: port, ID: id, Password: password, Secure: true, InsecureSkipVerify: true}
 
 	if len(secureEndpoint) > 0 {
 		aqua.Secure = secureEndpoint[0]
@@ -34,6 +37,7 @@ func NewClient(host string, port int, user string, password string, secureEndpoi
 		}
 	}
 
+	aqua.RestClient = *gorequest.New().TLSClientConfig(&tls.Config{InsecureSkipVerify: aqua.InsecureSkipVerify})
 	if aqua.Secure {
 		aqua.URL = fmt.Sprintf("https://%s:%d/api", host, port)
 	} else {
@@ -52,19 +56,16 @@ func NewClient(host string, port int, user string, password string, secureEndpoi
 func authenticate(aqua *Aqua) (bool, string) {
 
 	url := fmt.Sprintf("%s/v1/login", aqua.URL)
-	params := `{"id":"` + aqua.User + `", "password":"` + aqua.Password + `"}`
-	request := gorequest.New().TLSClientConfig(&tls.Config{InsecureSkipVerify: aqua.InsecureSkipVerify})
-
-	resp, body, err := request.Post(url).Param("abilities", "1").Send(params).End()
+	params := `{"id":"` + aqua.ID + `", "password":"` + aqua.Password + `"}`
+	resp, body, err := aqua.RestClient.Post(url).Send(params).End()
 
 	if err != nil {
 		return false, ""
 	}
 
 	if resp.StatusCode == 200 {
-		var raw map[string]interface{}
-		_ = json.Unmarshal([]byte(body), &raw)
-		aqua.Token = raw["token"].(string)
+		//var raw map[string]interface{}
+		_ = json.Unmarshal([]byte(body), &aqua)
 		return true, ""
 	}
 
