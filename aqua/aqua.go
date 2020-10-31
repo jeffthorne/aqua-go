@@ -4,13 +4,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/parnurzeal/gorequest"
 )
 
-// Aqua is
+// Aqua is the main interface used to interact with Aqua's Enterprise platform API endpoint.
 type Aqua struct {
 	Host               string
 	Port               int
@@ -23,7 +22,7 @@ type Aqua struct {
 	InsecureSkipVerify bool
 }
 
-// NewClient -
+// NewClient - is used to obtain functioning API endpoint
 func NewClient(host string, port int, user string, password string, secureEndpoint ...bool) (Aqua, error) {
 
 	aqua := Aqua{Host: host, Port: port, User: user, Password: password, Secure: true, InsecureSkipVerify: true}
@@ -41,12 +40,16 @@ func NewClient(host string, port int, user string, password string, secureEndpoi
 		aqua.URL = fmt.Sprintf("http://%s:%d/api", host, port)
 	}
 
-	authenticate(&aqua)
+	connected, message := authenticate(&aqua)
 
-	return aqua, nil
+	if connected {
+		return aqua, nil
+	}
+
+	return aqua, fmt.Errorf(message)
 }
 
-func authenticate(aqua *Aqua) bool {
+func authenticate(aqua *Aqua) (bool, string) {
 
 	url := fmt.Sprintf("%s/v1/login", aqua.URL)
 	params := `{"id":"` + aqua.User + `", "password":"` + aqua.Password + `"}`
@@ -55,17 +58,16 @@ func authenticate(aqua *Aqua) bool {
 	resp, body, err := request.Post(url).Param("abilities", "1").Send(params).End()
 
 	if err != nil {
-		return false
+		return false, ""
 	}
 
 	if resp.StatusCode == 200 {
 		var raw map[string]interface{}
 		_ = json.Unmarshal([]byte(body), &raw)
 		aqua.Token = raw["token"].(string)
-		return true
+		return true, ""
 	}
 
-	log.Printf("Failed with status: %s", resp.Status)
-	return false
+	return false, fmt.Sprintf("Failed with status: %s", resp.Status)
 
 }
