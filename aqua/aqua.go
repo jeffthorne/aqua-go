@@ -27,6 +27,9 @@ type Aqua struct {
 }
 
 // NewCSP - is used to obtain functioning Aqua Enterprise API endpoint
+// secureEndpoint is optional. if supplied expecting 2 bool values.
+// First value is whether or not Aqua is listenting on secure URL
+// Second is whether or not to InsecureSkipVerify
 func NewCSP(host string, port int, id string, password string, secureEndpoint ...bool) (Aqua, error) {
 
 	aqua := Aqua{Host: host, Port: port, ID: id, Password: password, Secure: true, InsecureSkipVerify: true}
