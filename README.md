@@ -1,6 +1,6 @@
 # aqua-go
 
-A fantastic GO SDK for Aqua's Enterprise Platform
+A fantastic GO SDK for both Aqua's Enterprise and Wave
 Status: Experimental
 
 Documentation
