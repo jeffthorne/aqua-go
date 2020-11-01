@@ -5,7 +5,7 @@ Status: Experimental
 
 Documentation
 ----
-https://godoc.org/github.com/jeffthorne/aqua-go
+https://pkg.go.dev/github.com/jeffthorne/aqua-go
 
 
 Installation
