@@ -78,5 +78,23 @@ func (aqua *Aqua) UpdateRegistry(name, description, registryType, url, username,
 }
 
 
+func (aqua *Aqua) GetRegistry(name string) (string, error) {
+	resp, body, errors := api(aqua, fmt.Sprintf("registries/%s", name), "", "v1", "GET")
+
+	if errors != nil{
+		return "", fmt.Errorf(fmt.Sprint(errors))
+	}
+
+	if resp.StatusCode != 200 && resp.StatusCode != 204{
+		return "", fmt.Errorf(body)
+	}
+
+		if resp.StatusCode == 200 {
+			return body, nil
+		}
+
+	return "", fmt.Errorf("Failed with status: %s", resp.Status)
+}
+
 
 
