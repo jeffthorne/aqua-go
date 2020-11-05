@@ -87,7 +87,11 @@ func api(aqua *Aqua, call, params, apiVersion, method string) (gorequest.Respons
 		resp, body, err = aqua.RestClient.Clone().Get(url).Query(params).End()
 	case "POST":
 		resp, body, err = aqua.RestClient.Clone().Post(url).Send(params).End()
+	case "PUT":
+		resp, body, err = aqua.RestClient.Clone().Put(url).Send(params).End()
 	}
+
+
 
 	return resp, body, err
 
