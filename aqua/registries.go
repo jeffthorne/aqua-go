@@ -97,5 +97,21 @@ func (aqua *Aqua) GetRegistry(name string) (Registry, error) {
 	return registry, fmt.Errorf("Failed with status: %s", resp.Status)
 }
 
+func (aqua *Aqua) DeleteRegistry(name string) (error) {
+	resp, body, errors := api(aqua, fmt.Sprintf("registries/%s", name), "", "v1", "DELETE")
 
+	if errors != nil{
+		return fmt.Errorf(fmt.Sprint(errors))
+	}
+
+	if resp.StatusCode != 200 && resp.StatusCode != 204{
+		return fmt.Errorf(body)
+	}
+
+	if resp.StatusCode == 204 {
+		return nil
+	}
+
+	return fmt.Errorf("Failed with status: %s", resp.Status)
+}
 
