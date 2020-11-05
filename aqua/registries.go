@@ -78,22 +78,23 @@ func (aqua *Aqua) UpdateRegistry(name, description, registryType, url, username,
 }
 
 
-func (aqua *Aqua) GetRegistry(name string) (string, error) {
+func (aqua *Aqua) GetRegistry(name string) (Registry, error) {
 	resp, body, errors := api(aqua, fmt.Sprintf("registries/%s", name), "", "v1", "GET")
-
+	var registry Registry
 	if errors != nil{
-		return "", fmt.Errorf(fmt.Sprint(errors))
+		return registry, fmt.Errorf(fmt.Sprint(errors))
 	}
 
 	if resp.StatusCode != 200 && resp.StatusCode != 204{
-		return "", fmt.Errorf(body)
+		return registry, fmt.Errorf(body)
 	}
 
 		if resp.StatusCode == 200 {
-			return body, nil
+			_ = json.Unmarshal([]byte(body), &registry)
+			return registry, nil
 		}
 
-	return "", fmt.Errorf("Failed with status: %s", resp.Status)
+	return registry, fmt.Errorf("Failed with status: %s", resp.Status)
 }
 
 
